@@ -1,5 +1,21 @@
 # Queue Server
 
+### Features
+
+* Managed async queue with parallel jobs.
+* Queue state stored in SQLite and can be resumed.
+* Local socket with protocol for queue management.
+* Command line queue management.
+
+### Job Types
+
+* Shell Command
+
+### Requirements
+
+* PHP 8.3+
+	* json, pdo, pdo-sqlite
+
 ## Run Server
 
 Runs the queue picking up where it left off if it had been running before.
@@ -14,7 +30,7 @@ Force a fresh empty queue.
 
 ## Add Command to Queue
 
-Everything after `cmd` is the command that will be executed by the queue.
+Add a new shell command to the queue. Everything after `cmd` is the command that will be executed by the queue.
 
 * Phar: `$ php queue.phar cmd echo lol`
 * Source: `$ php bin/queue.php cmd echo lol`
