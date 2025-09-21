@@ -83,6 +83,10 @@ extends Server\Loop {
 
 		$this->Stack = $Stack;
 
+		$Job = $this->Stack->NewJob('test', [ 'arg' => 'one' ]);
+		$Job->SetTimeStartAfter(Common\Date::Unixtime() + 10);
+		$Job->Save();
+
 		////////
 
 		Console\Elements\H2::New(
@@ -95,13 +99,11 @@ extends Server\Loop {
 			Client: $this->Term,
 			Items: [
 				'DB'           => $this->Stack->GetDatabaseName(),
-				'Pending Jobs' => $this->Stack->FetchCountPending()
+				'Pending Jobs' => $this->Stack->FetchCountPending(),
+				'Future Jobs'  => $this->Stack->FetchCountFuture()
 			],
 			Print: 2
 		);
-
-		($this->API)
-		->futureTick($this->OnStackSet(...));
 
 		////////
 
@@ -175,10 +177,21 @@ extends Server\Loop {
 			$this->JobStart($Job);
 		}
 
-		catch(Queue\Error\QueueEmpty $Err) {
+		catch(Queue\Error\QueueIdle $Err) {
+			// todo: set a timer to rekick a queue that has stuff waiting
+			// to be done on a future date.
+
 			if($this->Jobs->Count() === 0)
 			$this->Term->PrintLn(sprintf(
 				'[%s] [Queue] Idle',
+				$this->GetCurrentDateTimeStamp()
+			));
+		}
+
+		catch(Queue\Error\QueueEmpty $Err) {
+			if($this->Jobs->Count() === 0)
+			$this->Term->PrintLn(sprintf(
+				'[%s] [Queue] Empty',
 				$this->GetCurrentDateTimeStamp()
 			));
 		}
@@ -285,9 +298,6 @@ extends Server\Loop {
 	protected function
 	OnStackSet():
 	void {
-
-		$Job = $this->Stack->NewJob('test', [ 'arg' => 'one' ]);
-		$Job->Save();
 
 		return;
 	}

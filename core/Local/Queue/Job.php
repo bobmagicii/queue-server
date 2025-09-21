@@ -31,6 +31,10 @@ extends Database\Prototype {
 
 	#[Database\Meta\TypeIntBig(Unsigned: TRUE)]
 	public int
+	$TimeStartAfter = 0;
+
+	#[Database\Meta\TypeIntBig(Unsigned: TRUE)]
+	public int
 	$TimeStarted = 0;
 
 	#[Database\Meta\TypeIntBig(Unsigned: TRUE)]
@@ -122,6 +126,18 @@ extends Database\Prototype {
 	}
 
 	public function
+	SetTimeStartAfter(?int $When=NULL):
+	static {
+
+		if($When === NULL)
+		$When = Common\Date::Unixtime();
+
+		$this->TimeStartAfter = $When;
+
+		return $this;
+	}
+
+	public function
 	SetTimeStart(?int $When=NULL):
 	static {
 
@@ -166,21 +182,23 @@ extends Database\Prototype {
 		$SQL->Insert($Table->Name);
 
 		$SQL->Fields([
-			'UUID'          => ':UUID',
-			'TimeCreated'   => ':TimeCreated',
-			'TimeStarted'   => ':TimeStarted',
-			'TimeCompleted' => ':TimeCompleted',
-			'JType'         => ':JType',
-			'JData'         => ':JData'
+			'UUID'           => ':UUID',
+			'TimeCreated'    => ':TimeCreated',
+			'TimeStartAfter' => ':TimeStartAfter',
+			'TimeStarted'    => ':TimeStarted',
+			'TimeCompleted'  => ':TimeCompleted',
+			'JType'          => ':JType',
+			'JData'          => ':JData'
 		]);
 
 		$Result = $SQL->Query([
-			':UUID'          => $this->UUID,
-			':TimeCreated'   => $this->TimeCreated,
-			':TimeStarted'   => $this->TimeStarted,
-			':TimeCompleted' => $this->TimeCompleted,
-			':JType'         => $this->JType,
-			':JData'         => $this->JData
+			':UUID'           => $this->UUID,
+			':TimeCreated'    => $this->TimeCreated,
+			':TimeStartAfter' => $this->TimeStartAfter,
+			':TimeStarted'    => $this->TimeStarted,
+			':TimeCompleted'  => $this->TimeCompleted,
+			':JType'          => $this->JType,
+			':JData'          => $this->JData
 		]);
 
 		////////
@@ -221,6 +239,45 @@ extends Database\Prototype {
 		]);
 
 		////////
+
+		return;
+	}
+
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
+
+	static protected function
+	FindExtendOptions(Common\Datastore $Input):
+	void {
+
+		$Input->Define('Next', NULL);
+		$Input->Define('Future', NULL);
+
+		return;
+	}
+
+	static protected function
+	FindExtendFilters(Database\Verse $SQL, Common\Datastore $Input):
+	void {
+
+		if($Input['Next'] !== NULL) {
+			$SQL->Where('TimeStarted=0 AND TimeStartAfter<=:Next');
+			$SQL->Sort('TimeCreated', $SQL::SortAsc);
+			$SQL->Limit(1);
+		}
+
+		if($Input['Future'] !== NULL) {
+			$SQL->Where('TimeStarted=0 AND TimeStartAfter>:Future');
+			$SQL->Sort('TimeCreated', $SQL::SortAsc);
+			$SQL->Limit(1);
+		}
+
+		return;
+	}
+
+	static protected function
+	FindExtendSorts(Database\Verse $SQL, Common\Datastore $Input):
+	void {
 
 		return;
 	}

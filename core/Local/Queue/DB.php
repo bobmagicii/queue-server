@@ -25,6 +25,7 @@ extends Common\Prototype {
 			ID INTEGER PRIMARY KEY AUTOINCREMENT,
 			UUID TEXT,
 			TimeCreated INTEGER,
+			TimeStartAfter INTEGER,
 			TimeStarted INTEGER,
 			TimeCompleted INTEGER,
 			JType TEXT,
@@ -138,15 +139,23 @@ extends Common\Prototype {
 
 		$Output = new static([
 			'CTX' => new Database\Connection(
-				'sqlite',
-				'localhost',
-				$Filename,
-				'', '',
-				'utf8'
+				Name:     'Default',
+				Type:     'sqlite',
+				Hostname: 'localhost',
+				Username: '',
+				Password: '',
+				Database: $Filename
 			)
 		]);
 
 		$Output->Open($Fresh);
+
+		////////
+
+		$Manager = new Database\Manager;
+		$Manager->Add($Output->CTX);
+
+		////////
 
 		return $Output;
 	}
