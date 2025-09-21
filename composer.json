@@ -1,0 +1,31 @@
+{
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"config": {
+		"preferred-install": {
+			"netherphp/*": "source",
+			"*": "dist"
+		},
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"netherphp/composer-plugin": true
+		}
+	},
+	"autoload": {
+		"psr-0": {
+			"Local\\": "core"
+		}
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"netherphp/standards": "^0.2.9"
+	},
+	"require": {
+		"netherphp/common": "dev-master",
+		"netherphp/console": "dev-redux",
+		"netherphp/database": "dev-redux",
+		"react/event-loop": "^1.5",
+		"react/child-process": "^0.6.6",
+		"react/socket": "^1.16"
+	}
+}

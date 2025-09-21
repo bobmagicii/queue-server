@@ -1,0 +1,16 @@
+# typical project wide annoyances.
+
+.DS_Store
+
+/.phpunit.cache
+/.vendex
+
+/env.lock
+/backups
+/build
+/logs
+/temp
+/vendor
+/queue.sqlite
+
+# eof
