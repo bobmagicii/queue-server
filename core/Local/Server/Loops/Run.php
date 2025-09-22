@@ -34,6 +34,9 @@ extends Server\Loop {
 	protected Server\Comms
 	$Comms;
 
+	protected ?React\EventLoop\TimerInterface
+	$TimerIdle = NULL;
+
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
@@ -83,9 +86,9 @@ extends Server\Loop {
 
 		$this->Stack = $Stack;
 
-		$Job = $this->Stack->NewJob('test', [ 'arg' => 'one' ]);
-		$Job->SetTimeStartAfter(Common\Date::Unixtime() + 10);
-		$Job->Save();
+		//$Job = $this->Stack->NewJob('test', [ 'arg' => 'one' ]);
+		//$Job->SetTimeStartAfter(Common\Date::Unixtime() + 10);
+		//$Job->Save();
 
 		////////
 
@@ -162,6 +165,7 @@ extends Server\Loop {
 	Next():
 	void {
 
+		$Now = Common\Date::Unixtime();
 		$Err = NULL;
 		$Job = NULL;
 
@@ -178,13 +182,13 @@ extends Server\Loop {
 		}
 
 		catch(Queue\Error\QueueIdle $Err) {
-			// todo: set a timer to rekick a queue that has stuff waiting
-			// to be done on a future date.
+			$this->ResetTimerIdle($Err->Until - $Now);
 
 			if($this->Jobs->Count() === 0)
 			$this->Term->PrintLn(sprintf(
-				'[%s] [Queue] Idle',
-				$this->GetCurrentDateTimeStamp()
+				'[%s] [Queue] Idle (%s)',
+				$this->GetCurrentDateTimeStamp(),
+				new Common\Units\Timeframe($Now, $Err->Until)
 			));
 		}
 
@@ -195,6 +199,20 @@ extends Server\Loop {
 				$this->GetCurrentDateTimeStamp()
 			));
 		}
+
+		return;
+	}
+
+	public function
+	ResetTimerIdle(int $Delay=1):
+	void {
+
+		if($this->TimerIdle)
+		$this->API->cancelTimer($this->TimerIdle);
+
+		////////
+
+		$this->TimerIdle = $this->API->addTimer($Delay, $this->Kick(...));
 
 		return;
 	}

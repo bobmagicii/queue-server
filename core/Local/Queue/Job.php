@@ -261,13 +261,13 @@ extends Database\Prototype {
 	void {
 
 		if($Input['Next'] !== NULL) {
-			$SQL->Where('TimeStarted=0 AND TimeStartAfter<=:Next');
+			$SQL->Where('TimeStarted=0 AND TimeStartAfter <= :Next');
 			$SQL->Sort('TimeCreated', $SQL::SortAsc);
 			$SQL->Limit(1);
 		}
 
 		if($Input['Future'] !== NULL) {
-			$SQL->Where('TimeStarted=0 AND TimeStartAfter>:Future');
+			$SQL->Where('TimeStarted=0 AND TimeStartAfter > :Future');
 			$SQL->Sort('TimeCreated', $SQL::SortAsc);
 			$SQL->Limit(1);
 		}

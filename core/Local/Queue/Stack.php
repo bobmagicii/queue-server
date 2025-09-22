@@ -37,8 +37,11 @@ class Stack {
 
 		$Next = Job::Find([ 'Future' => $Now ]);
 
-		if($Next->Total() >= 1)
-		throw new Error\QueueIdle;
+		if($Next->Total() >= 1) {
+			$Job = new Job($Next[0]);
+			throw new Error\QueueIdle($Job->TimeStartAfter);
+		}
+
 
 		////////
 

@@ -11,8 +11,14 @@ use Exception;
 class QueueIdle
 extends Exception {
 
-	public function __Construct() {
+	public ?int
+	$Until;
+
+	public function __Construct(?int $Until=NULL) {
 		parent::__Construct('queue is idle');
+
+		$this->Until = $Until;
+
 		return;
 	}
 

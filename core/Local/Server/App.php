@@ -123,8 +123,9 @@ extends Console\Client {
 		$Msg = json_encode([
 			'Cmd' => 'JobAdd',
 			'Job' => [
-				'JType' => 'shellcmd',
-				'JData' => [
+				//'TimeStartAfter' => (Common\Date::Unixtime() + 10),
+				'JType'          => 'shellcmd',
+				'JData'          => [
 					'Cmd' => $Cmd
 				]
 			]
