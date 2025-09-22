@@ -5,16 +5,34 @@ namespace Local\Queue;
 
 use Nether\Common;
 
+use Exception;
+
 ################################################################################
 ################################################################################
 
-class Stack {
+class Stack
+extends Common\Prototype {
+
+	protected string
+	$StackDB;
 
 	protected DB
 	$DB;
 
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
+
+	public function
+	Open(bool $Fresh=FALSE):
+	static {
+
+		if(!isset($this->StackDB))
+		throw new Exception('no database file set');
+
+		$this->DB = DB::Touch($this->StackDB, $Fresh);
+
+		return $this;
+	}
 
 	public function
 	Next():
@@ -81,6 +99,15 @@ class Stack {
 	}
 
 	public function
+	SetDatabaseFile(string $Filename):
+	static {
+
+		$this->StackDB = $Filename;
+
+		return $this;
+	}
+
+	public function
 	GetDatabaseName():
 	string {
 
@@ -91,10 +118,10 @@ class Stack {
 	////////////////////////////////////////////////////////////////
 
 	public function
-	FetchCountPending():
+	FetchCountPending(?int $Now=NULL):
 	int {
 
-		$Now = Common\Date::Unixtime();
+		$Now ??= Common\Date::Unixtime();
 		$SQL = $this->DB->NewVerseQuery();
 
 		$SQL->Select('Jobs');
@@ -108,10 +135,10 @@ class Stack {
 	}
 
 	public function
-	FetchCountFuture():
+	FetchCountFuture(?int $Now=NULL):
 	int {
 
-		$Now = Common\Date::Unixtime();
+		$Now ??= Common\Date::Unixtime();
 		$SQL = $this->DB->NewVerseQuery();
 
 		$SQL->Select('Jobs');
@@ -122,19 +149,6 @@ class Stack {
 		$Row = $Result->Next();
 
 		return $Row->Total;
-	}
-
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-
-	static public function
-	New(string $Filename, bool $Fresh=FALSE):
-	static {
-
-		$Output = new static;
-		$Output->DB = DB::Touch($Filename, $Fresh);
-
-		return $Output;
 	}
 
 };

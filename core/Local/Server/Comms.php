@@ -18,17 +18,18 @@ use WeakMap;
 class Comms
 extends Common\Prototype {
 
+	#[Common\Meta\Info('Socket address to open in addr:port format.')]
 	protected string
 	$Address;
+
+	////////////////////////////////
+	////////////////////////////////
 
 	protected React\Socket\ServerInterface
 	$API;
 
-	protected Server\Loops\Run
+	protected Server\Loop
 	$Loop;
-
-	protected Console\Client
-	$Term;
 
 	#[Common\Meta\PropertyObjectify]
 	protected WeakMap
@@ -37,9 +38,18 @@ extends Common\Prototype {
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
+	#[Common\Meta\Info('Open the socket to allow communication with the queue.')]
 	public function
 	Open():
 	static {
+
+		if(!isset($this->Loop))
+		throw new Exception('no event loop spefified');
+
+		if(!isset($this->Address))
+		throw new Exception('no socket address specified');
+
+		////////
 
 		$this->API = new React\Socket\SocketServer(
 			$this->Address,
@@ -54,6 +64,8 @@ extends Common\Prototype {
 			=> $this->OnConnect($S)
 		);
 
+		////////
+
 		return $this;
 	}
 
@@ -64,25 +76,21 @@ extends Common\Prototype {
 	SetAddress(string $Address):
 	static {
 
+		if(!str_contains($Address, ':'))
+		throw new Exception('expecting addr:port format');
+
+		////////
+
 		$this->Address = $Address;
 
 		return $this;
 	}
 
 	public function
-	SetLoop(Server\Loops\Run $Loop):
+	SetLoop(Server\Loop $Loop):
 	static {
 
 		$this->Loop = $Loop;
-
-		return $this;
-	}
-
-	public function
-	SetTerm(Console\Client $Term):
-	static {
-
-		$this->Term = $Term;
 
 		return $this;
 	}
@@ -101,15 +109,15 @@ extends Common\Prototype {
 
 		$Socket->on('error', function (Exception $e) use($Socket) {
 			unset($this->Connections[$Socket]);
-			//echo 'error: ' . $e->getMessage(), PHP_EOL;
 			return;
 		});
 
 		$Socket->on('close', function () use($Socket) {
 			unset($this->Connections[$Socket]);
-			//echo 'closed', PHP_EOL;
 			return;
 		});
+
+		////////
 
 		$this->Connections[$Socket] = new CommsRemote([
 			'API' => $Socket
@@ -122,12 +130,17 @@ extends Common\Prototype {
 	OnData(CommsRemote $Socket, string $Data):
 	void {
 
+		$Socket->DataBuffer .= $Data;
+
+		////////
+
 		$Pos = NULL;
 		$Line = NULL;
 
 		////////
 
-		$Socket->DataBuffer .= $Data;
+		// PROTOCOL SPEC:
+		// { "Cmd": "Swag", ... }\n
 
 		if(!str_contains($Socket->DataBuffer, "\n"))
 		return;
@@ -136,8 +149,8 @@ extends Common\Prototype {
 
 			// read and trim the buffer.
 
-			$Line = substr($Socket->DataBuffer, 0, $Pos);
-			$Socket->DataBuffer = substr($Socket->DataBuffer, $Pos + 1);
+			$Line = mb_substr($Socket->DataBuffer, 0, $Pos);
+			$Socket->DataBuffer = mb_substr($Socket->DataBuffer, ($Pos + 1));
 
 			// decode the message.
 
@@ -159,19 +172,6 @@ extends Common\Prototype {
 		}
 
 		return;
-	}
-
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-
-	static public function
-	New(string $Address):
-	static {
-
-		$Output = new static;
-		$Output->Address = $Address;
-
-		return $Output;
 	}
 
 };

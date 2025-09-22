@@ -20,10 +20,10 @@ extends Console\Client {
 	$AppRoot;
 
 	protected string
-	$CommsAddr;
+	$SocketAddr;
 
 	protected string
-	$DBFile;
+	$StackDB;
 
 	protected string
 	$DBName;
@@ -35,10 +35,12 @@ extends Console\Client {
 	OnPrepare():
 	void {
 
+		// todo: config file
+
 		$this->AppRoot = $this->GetOption('AppRoot');
-		$this->CommsAddr = '127.0.0.1:42001';
+		$this->SocketAddr = '127.0.0.1:42001';
 		$this->DBName = 'queue.sqlite';
-		$this->DBFile = Common\Filesystem\Util::Pathify($this->AppRoot, $this->DBName);
+		$this->StackDB = Common\Filesystem\Util::Pathify($this->AppRoot, $this->DBName);
 
 		Console\Elements\H2::New(
 			Client: $this,
@@ -50,8 +52,8 @@ extends Console\Client {
 			Client: $this,
 			Items: [
 				'AppRoot'   => $this->AppRoot,
-				'CommsAddr' => $this->CommsAddr,
-				'DBFile'    => $this->DBFile
+				'SocketAddr' => $this->SocketAddr,
+				'StackDB'    => $this->StackDB
 			],
 			Print: 2
 		);
@@ -65,25 +67,24 @@ extends Console\Client {
 	#[Console\Meta\Command('run')]
 	#[Console\Meta\Info('Start queue server.')]
 	#[Console\Meta\Toggle('--fresh', 'Start a fresh empty DB.')]
+	#[Console\Meta\Value('--socket', 'Socket server addr:port.')]
+	#[Console\Meta\Value('--db', 'Path to SQLite database.')]
 	public function
 	HandleRun():
 	int {
 
+		$OptStackDB = $this->GetOption('--db') ?: $this->StackDB;
+		$OptSocketAddr = $this->GetOption('--socket') ?: $this->SocketAddr;
 		$OptFresh = (bool)$this->GetOption('fresh');
 
-		$Loop = Loops\Run::New();
-		$Stack = Queue\Stack::New($this->DBFile, $OptFresh);
-		$Comms = Server\Comms::New($this->CommsAddr);
+		$Loop = Loops\Run::New(
+			Client:     $this,
+			StackDB:    $OptStackDB,
+			StackFresh: $OptFresh,
+			SocketAddr: $OptSocketAddr
+		);
 
-
-		////////
-
-		$Loop->SetTerminal($this);
-		$Loop->SetStack($Stack);
-		$Loop->SetComms($Comms);
 		$Loop->Run();
-
-		////////
 
 		return 0;
 	}
@@ -94,16 +95,7 @@ extends Console\Client {
 	HandleStatus():
 	int {
 
-		$Stack = Queue\Stack::New($this->DBFile);
-		$NumPending = $Stack->FetchCountPending();
-
-		Console\Elements\ListNamed::New(
-			Client: $this,
-			Items: [
-				"Pending" => $NumPending
-			],
-			Print: 2
-		);
+		// send status query over socket.
 
 		return 0;
 	}
@@ -123,9 +115,8 @@ extends Console\Client {
 		$Msg = json_encode([
 			'Cmd' => 'JobAdd',
 			'Job' => [
-				//'TimeStartAfter' => (Common\Date::Unixtime() + 10),
-				'JType'          => 'shellcmd',
-				'JData'          => [
+				'JType' => 'shellcmd',
+				'JData' => [
 					'Cmd' => $Cmd
 				]
 			]
@@ -134,7 +125,7 @@ extends Console\Client {
 		$Client = new React\Socket\Connector;
 
 		($Client)
-		->connect($this->CommsAddr)
+		->connect($this->SocketAddr)
 		->then(function(React\Socket\ConnectionInterface $C) use($Msg) {
 			$C->write("{$Msg}\n");
 			$C->once('data', function(string $Data) use($C) {
@@ -156,9 +147,24 @@ extends Console\Client {
 	Common\Datastore {
 
 		$Index = parent::GetPharFiles();
+
 		$Index->Push('core');
 
 		return $Index;
+	}
+
+	protected function
+	GetPharFileFilters():
+	Common\Datastore {
+
+		$Output = parent::GetPharFileFilters();
+
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/monolog'));
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/dealerdirect'));
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/fileeye'));
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/squizlabs'));
+
+		return $Output;
 	}
 
 };

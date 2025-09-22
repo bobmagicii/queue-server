@@ -15,37 +15,47 @@ use Nether\Console;
 class Run
 extends Server\Loop {
 
-	public Console\Client
-	$Term;
-
-	protected React\EventLoop\LoopInterface
-	$API;
-
-	protected Queue\Stack
+	#[Common\Meta\PropertyObjectify]
+	#[Common\Meta\Info('The entire job stack.')]
+	public Queue\Stack
 	$Stack;
 
 	#[Common\Meta\PropertyObjectify]
-	protected Common\Datastore
+	#[Common\Meta\Info('Currently running jobs.')]
+	public Common\Datastore
 	$Jobs;
 
-	protected int
-	$JobsMax = 2;
-
-	protected Server\Comms
+	#[Common\Meta\PropertyObjectify]
+	#[Common\Meta\Info('Local socket interface.')]
+	public Server\Comms
 	$Comms;
 
+	////////////////////////////////
+	////////////////////////////////
+
+	#[Common\Meta\Info('Timer for when stack begins an IDLE state.')]
 	protected ?React\EventLoop\TimerInterface
 	$TimerIdle = NULL;
 
+	////////////////////////////////
+	////////////////////////////////
+
+	#[Common\Meta\Info('Maximum concurrent running jobs.')]
+	protected int
+	$MaxJobs = 2;
+
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
-	public function
-	GetAPI():
-	React\EventLoop\LoopInterface {
+	protected function
+	OnReady(Common\Prototype\ConstructArgs $Args):
+	void {
 
-		return $this->API;
+		return;
 	}
+
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
 
 	public function
 	GetStackDatabase():
@@ -54,28 +64,17 @@ extends Server\Loop {
 		return $this->Stack->GetDatabase();
 	}
 
-	public function
-	GetCurrentDateTimeStamp():
-	string {
-
-		return (new Common\Date)->Get(Common\Values::DateFormatYMDT24V);
-	}
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
 
 	public function
 	SetComms(Server\Comms $Server):
 	static {
 
 		$this->Comms = $Server;
-		$this->Comms->SetTerm($this->Term);
-		$this->Comms->SetLoop($this);
-		$this->Comms->Open();
-
-		////////
-
-		($this->API)
-		->futureTick($this->OnCommsSet(...));
-
-		////////
+		//$this->Comms->SetTerm($this->Term);
+		//$this->Comms->SetLoop($this);
+		//$this->Comms->Open();
 
 		return $this;
 	}
@@ -85,10 +84,6 @@ extends Server\Loop {
 	static {
 
 		$this->Stack = $Stack;
-
-		//$Job = $this->Stack->NewJob('test', [ 'arg' => 'one' ]);
-		//$Job->SetTimeStartAfter(Common\Date::Unixtime() + 10);
-		//$Job->Save();
 
 		////////
 
@@ -113,21 +108,8 @@ extends Server\Loop {
 		return $this;
 	}
 
-	public function
-	SetTerminal(Console\Client $Term):
-	static {
-
-		$this->Term = $Term;
-
-		////////
-
-		($this->API)
-		->futureTick($this->OnTerminalSet(...));
-
-		////////
-
-		return $this;
-	}
+	////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////
 
 	public function
 	Run():
@@ -171,7 +153,7 @@ extends Server\Loop {
 
 		////////
 
-		if($this->Jobs->Count() >= $this->JobsMax)
+		if($this->Jobs->Count() >= $this->MaxJobs)
 		return;
 
 		////////
@@ -314,30 +296,6 @@ extends Server\Loop {
 	////////////////////////////////////////////////////////////////
 
 	protected function
-	OnStackSet():
-	void {
-
-		return;
-	}
-
-	protected function
-	OnTerminalSet():
-	void {
-
-		return;
-	}
-
-	protected function
-	OnCommsSet():
-	void {
-
-		return;
-	}
-
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-
-	protected function
 	OnSignal(int $Signal):
 	void {
 
@@ -363,11 +321,25 @@ extends Server\Loop {
 	////////////////////////////////////////////////////////////////
 
 	static public function
-	New():
+	New(
+		Console\Client $Client,
+		string $StackDB, bool $StackFresh=FALSE,
+		string $SocketAddr='127.0.0.1:42001'
+	):
 	static {
 
 		$Output = new static;
-		$Output->API = React\EventLoop\Loop::Get();
+		$Output->SetAPI(React\EventLoop\Loop::Get());
+		$Output->SetTerminal($Client);
+
+		$Output->Stack->SetDatabaseFile($StackDB);
+		$Output->Stack->Open($StackFresh);
+
+		$Output->Comms->SetLoop($Output);
+		$Output->Comms->SetAddress($SocketAddr);
+		$Output->Comms->Open();
+
+		//$Output->SetComms(Server\Comms::New($SocketAddr));
 
 		////////
 

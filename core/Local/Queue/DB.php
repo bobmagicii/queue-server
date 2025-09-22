@@ -152,6 +152,7 @@ extends Common\Prototype {
 
 		////////
 
+		// todo: refactor so this out of here.
 		$Manager = new Database\Manager;
 		$Manager->Add($Output->CTX);
 
