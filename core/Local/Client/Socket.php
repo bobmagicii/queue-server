@@ -117,7 +117,7 @@ extends Common\Prototype {
 
 		////////
 
-		while($Pos = strpos($this->InputBuffer, "\n")) {
+		while($Pos = mb_strpos($this->InputBuffer, "\n")) {
 
 			// read and trim the buffer.
 

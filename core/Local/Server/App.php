@@ -70,6 +70,7 @@ extends Console\Client {
 	#[Console\Meta\Toggle('--fresh', 'Start a fresh empty DB.')]
 	#[Console\Meta\Value('--socket', 'Socket server addr:port.')]
 	#[Console\Meta\Value('--db', 'Path to SQLite database.')]
+	#[Common\Meta\Date('2025-09-21')]
 	public function
 	HandleRun():
 	int {
@@ -77,6 +78,8 @@ extends Console\Client {
 		$OptStackDB = $this->GetOption('--db') ?: $this->StackDB;
 		$OptSocketAddr = $this->GetOption('--socket') ?: $this->SocketAddr;
 		$OptFresh = (bool)$this->GetOption('fresh');
+
+		////////
 
 		$Loop = Loops\Run::New(
 			Client:     $this,
@@ -92,11 +95,32 @@ extends Console\Client {
 
 	#[Console\Meta\Command('status')]
 	#[Console\Meta\Info('Print queue server status.')]
+	#[Common\Meta\Date('2025-09-22')]
 	public function
 	HandleStatus():
 	int {
 
-		// send status query over socket.
+		$Message = new Server\Messages\StatusQuery;
+
+		(new Client\Socket)
+		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) {
+
+			if($Data instanceof Server\Messages\StatusResponse)
+			Console\Elements\ListNamed::New(
+				Client: $this,
+				Items: [
+					'Running' => $Data->NumRunning,
+					'Pending' => $Data->NumPending,
+					'Future'  => $Data->NumFuture
+				],
+				Print: 2
+			);
+
+			$C->Disconnect();
+			return;
+		})
+		->Connect($this->SocketAddr)
+		->Send($Message);
 
 		return 0;
 	}
@@ -104,6 +128,7 @@ extends Console\Client {
 	#[Console\Meta\Command('cmd')]
 	#[Console\Meta\Info('Adds a shellcmd item to the queue.')]
 	#[Console\Meta\Arg('...', 'The command to run.')]
+	#[Common\Meta\Date('2025-09-22')]
 	public function
 	HandleQueueCmd():
 	int {
@@ -115,31 +140,20 @@ extends Console\Client {
 
 		////////
 
-		$Message = json_encode([
-			'Cmd' => 'JobAdd',
-			'Job' => [
+		$Message = new Server\Messages\JobAdd([
+			'Job' => Queue\Job::FromArray([
 				'JType' => 'shellcmd',
-				'JData' => json_encode([
-					'Cmd' => $Cmd
-				])
-			]
+				'JData' => json_encode([ 'Cmd' => $Cmd ])
+			])
 		]);
 
-		////////
-
-		$Client = new Client\Socket;
-
-		($Client)
+		(new Client\Socket)
 		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) {
-			var_dump($Data);
-			echo $Data->ToJSON(), PHP_EOL;
 
 			if($Data instanceof Server\Messages\JobAdded)
 			Console\Elements\ListNamed::New(
 				Client: $this,
-				Items: [
-					'Job UUID' => $Data->JobUUID
-				],
+				Items: [ 'Job UUID' => $Data->JobUUID ],
 				Print: 2
 			);
 

@@ -103,7 +103,7 @@ extends Common\Prototype {
 	void {
 
 		$Socket->on('data', function (string $Data) use($Socket) {
-			$this->OnData($this->Connections[$Socket], $Data);
+			$this->OnDataRecv($this->Connections[$Socket], $Data);
 			return;
 		});
 
@@ -127,7 +127,7 @@ extends Common\Prototype {
 	}
 
 	public function
-	OnData(CommsRemote $Socket, string $Data):
+	OnDataRecv(CommsRemote $Socket, string $Data):
 	void {
 
 		$Socket->DataBuffer .= $Data;
@@ -145,7 +145,7 @@ extends Common\Prototype {
 		if(!str_contains($Socket->DataBuffer, "\n"))
 		return;
 
-		while($Pos = strpos($Socket->DataBuffer, "\n")) {
+		while($Pos = mb_strpos($Socket->DataBuffer, "\n")) {
 
 			// read and trim the buffer.
 
@@ -155,6 +155,12 @@ extends Common\Prototype {
 			// decode the message.
 
 			$Msg = Server\Message::FromJSON($Line);
+
+			$this->Loop->Term->PrintLn(sprintf(
+				'[%s] [Incoming Comms] %s',
+				$this->Loop->GetCurrentDateTimeStamp(),
+				$Msg->Cmd
+			));
 
 			if($Msg instanceof Server\Messages\ServerProcessInterface)
 			$Msg->Process($this->Loop, $Socket);

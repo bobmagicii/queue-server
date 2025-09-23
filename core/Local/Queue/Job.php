@@ -282,16 +282,4 @@ extends Database\Prototype {
 		return;
 	}
 
-	////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////
-
-	static public function
-	FromArray(iterable $Input):
-	static {
-
-		$Output = new static($Input);
-
-		return $Output;
-	}
-
 };
