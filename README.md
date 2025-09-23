@@ -32,6 +32,12 @@ Add a new shell command to the queue. Everything after `cmd` is the command that
 
 * `$ php queue.phar cmd sleep 10`
 
+## Queue Status
+
+Prints a report about how many running jobs and how many are left.
+
+* `$php queue.phar status`
+
 ## Build `queue.phar`
 
 This command will produce `build/queue-<version>.phar` which is the only file that is then needed to run and manage the queue.
