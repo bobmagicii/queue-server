@@ -26,9 +26,6 @@ extends Console\Client {
 	protected string
 	$StackDB;
 
-	protected string
-	$DBName;
-
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
@@ -40,8 +37,7 @@ extends Console\Client {
 
 		$this->AppRoot = $this->GetOption('AppRoot');
 		$this->SocketAddr = '127.0.0.1:42001';
-		$this->DBName = 'queue.sqlite';
-		$this->StackDB = Common\Filesystem\Util::Pathify($this->AppRoot, $this->DBName);
+		$this->StackDB = Common\Filesystem\Util::Pathify($this->AppRoot, 'queue.sqlite');
 
 		Console\Elements\H2::New(
 			Client: $this,
@@ -158,6 +154,25 @@ extends Console\Client {
 			);
 
 			$C->Disconnect();
+			return;
+		})
+		->Connect($this->SocketAddr)
+		->Send($Message);
+
+		return 0;
+	}
+
+	#[Console\Meta\Command('stop')]
+	#[Console\Meta\Info('Stop running new jobs, wait for existing jobs to finish, then terminate server.')]
+	#[Common\Meta\Date('2025-09-22')]
+	public function
+	HandleServerStop():
+	int {
+
+		$Message = new Server\Messages\ServerStop;
+
+		(new Client\Socket)
+		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) {
 			return;
 		})
 		->Connect($this->SocketAddr)

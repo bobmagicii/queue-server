@@ -156,11 +156,22 @@ extends Server\Loop {
 		if($this->Jobs->Count() >= $this->MaxJobs)
 		return;
 
+		if($this->Halt) {
+			if($this->Jobs->Count() === 0) {
+				$this->API->stop();
+			}
+
+			return;
+		}
+
 		////////
 
 		try {
 			$Job = $this->Stack->Next();
 			$this->JobStart($Job);
+
+			if($this->Jobs->Count() < $this->MaxJobs)
+			$this->Kick();
 		}
 
 		catch(Queue\Error\QueueIdle $Err) {

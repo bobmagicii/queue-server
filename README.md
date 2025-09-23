@@ -7,14 +7,20 @@
 * Local socket with protocol for queue management.
 * Command line queue management.
 
+
+
 ### Job Types
 
 * Shell Command
+
+
 
 ### Requirements
 
 * PHP 8.3+
 	* json, pdo, pdo-sqlite
+
+
 
 ## Run Server
 
@@ -36,7 +42,13 @@ Add a new shell command to the queue. Everything after `cmd` is the command that
 
 Prints a report about how many running jobs and how many are left.
 
-* `$php queue.phar status`
+* `$ php queue.phar status`
+
+Wait for currently running jobs to finish and then terminate the server.
+
+* `$ php queue.phar stop`
+
+
 
 ## Build `queue.phar`
 

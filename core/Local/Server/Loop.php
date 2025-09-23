@@ -19,6 +19,9 @@ extends Common\Prototype {
 	public React\EventLoop\LoopInterface
 	$API;
 
+	protected bool
+	$Halt = FALSE;
+
 	////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
@@ -44,6 +47,15 @@ extends Common\Prototype {
 	static {
 
 		$this->API = $API;
+
+		return $this;
+	}
+
+	public function
+	SetHalt(bool $State):
+	static {
+
+		$this->Halt = $State;
 
 		return $this;
 	}
