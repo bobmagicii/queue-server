@@ -1,25 +1,16 @@
 <?php ##########################################################################
 ################################################################################
 
-namespace Local\Server;
+namespace Local\Server\Messages;
 
-use Nether\Common;
 use Local\Server;
 
 ################################################################################
 ################################################################################
 
-class CommsMsg
-extends Common\Prototype {
-
-	public string
-	$Cmd;
+interface ServerProcessInterface {
 
 	public function
-	Process(CommsRemote $Seocket):
-	static {
-
-		return $this;
-	}
+	Process(Server\Loops\Run $Loop, Server\CommsRemote $Socket): void;
 
 };

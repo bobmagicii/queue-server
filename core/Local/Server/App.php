@@ -6,6 +6,7 @@ namespace Local\Server;
 use React;
 use Local\Server;
 use Local\Queue;
+use Local\Client;
 use Nether\Common;
 use Nether\Console;
 
@@ -112,29 +113,41 @@ extends Console\Client {
 		$Args = Common\Datastore::FromArray(array_slice($OG, $Mark + 1));
 		$Cmd = $Args->Join(' ');
 
-		$Msg = json_encode([
+		////////
+
+		$Message = json_encode([
 			'Cmd' => 'JobAdd',
 			'Job' => [
 				'JType' => 'shellcmd',
-				'JData' => [
+				'JData' => json_encode([
 					'Cmd' => $Cmd
-				]
+				])
 			]
 		]);
 
-		$Client = new React\Socket\Connector;
+		////////
+
+		$Client = new Client\Socket;
 
 		($Client)
-		->connect($this->SocketAddr)
-		->then(function(React\Socket\ConnectionInterface $C) use($Msg) {
-			$C->write("{$Msg}\n");
-			$C->once('data', function(string $Data) use($C) {
-				echo $Data, PHP_EOL;
-				$C->close();
-				return;
-			});
+		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) {
+			var_dump($Data);
+			echo $Data->ToJSON(), PHP_EOL;
+
+			if($Data instanceof Server\Messages\JobAdded)
+			Console\Elements\ListNamed::New(
+				Client: $this,
+				Items: [
+					'Job UUID' => $Data->JobUUID
+				],
+				Print: 2
+			);
+
+			$C->Disconnect();
 			return;
-		});
+		})
+		->Connect($this->SocketAddr)
+		->Send($Message);
 
 		return 0;
 	}

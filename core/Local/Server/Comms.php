@@ -154,21 +154,12 @@ extends Common\Prototype {
 
 			// decode the message.
 
-			$Data = json_decode($Line, TRUE);
+			$Msg = Server\Message::FromJSON($Line);
 
-			if(!is_array($Data))
+			if($Msg instanceof Server\Messages\ServerProcessInterface)
+			$Msg->Process($this->Loop, $Socket);
+
 			continue;
-
-			if(!array_key_exists('Cmd', $Data))
-			continue;
-
-			////////
-
-			if($Data['Cmd'] === 'JobAdd') {
-				$Msg = CommsMsg\JobAdd::FromData($this->Loop, $Data);
-				$Msg->Process($Socket);
-				continue;
-			}
 		}
 
 		return;
