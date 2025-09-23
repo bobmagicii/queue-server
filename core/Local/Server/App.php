@@ -190,6 +190,8 @@ extends Console\Client {
 		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/dealerdirect'));
 		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/fileeye'));
 		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/squizlabs'));
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/fileeye'));
+		$Output->Push(fn(string $Path)=> !str_starts_with($Path, 'vendor/psr'));
 
 		return $Output;
 	}
