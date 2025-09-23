@@ -20,20 +20,17 @@
 
 Runs the queue picking up where it left off if it had been running before.
 
-* Phar: `$ php queue.phar run`
-* Source: `$ php bin/queue.php run`
+* `$ php queue.phar run`
 
 Force a fresh empty queue.
 
-* Phar: `$ php queue.phar run --fresh`
-* Source: `$ php bin/queue.php run --fresh`
+* `$ php queue.phar run --fresh`
 
 ## Add Command to Queue
 
 Add a new shell command to the queue. Everything after `cmd` is the command that will be executed by the queue.
 
-* Phar: `$ php queue.phar cmd echo lol`
-* Source: `$ php bin/queue.php cmd echo lol`
+* `$ php queue.phar cmd sleep 10`
 
 ## Build `queue.phar`
 
