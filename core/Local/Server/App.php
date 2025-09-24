@@ -39,6 +39,7 @@ extends Console\Client {
 		$this->SocketAddr = '127.0.0.1:42001';
 		$this->StackDB = Common\Filesystem\Util::Pathify($this->AppRoot, 'queue.sqlite');
 
+		/*
 		Console\Elements\H2::New(
 			Client: $this,
 			Text: 'Config',
@@ -54,6 +55,7 @@ extends Console\Client {
 			],
 			Print: 2
 		);
+		*/
 
 		return;
 	}
@@ -91,26 +93,35 @@ extends Console\Client {
 
 	#[Console\Meta\Command('status')]
 	#[Console\Meta\Info('Print queue server status.')]
+	#[Console\Meta\Toggle('--json', 'Print status as JSON.')]
 	#[Common\Meta\Date('2025-09-22')]
 	public function
 	HandleStatus():
 	int {
 
+		$OptJSON = $this->GetOption('json') ?: FALSE;
 		$Message = new Server\Messages\StatusQuery;
 
 		(new Client\Socket)
-		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) {
+		->SetDataFunc(function(Client\Socket $C, Server\Message $Data) use($OptJSON) {
 
-			if($Data instanceof Server\Messages\StatusResponse)
-			Console\Elements\ListNamed::New(
-				Client: $this,
-				Items: [
+			if($Data instanceof Server\Messages\StatusResponse) {
+				$Status = [
 					'Running' => $Data->NumRunning,
 					'Pending' => $Data->NumPending,
 					'Future'  => $Data->NumFuture
-				],
-				Print: 2
-			);
+				];
+
+				if($OptJSON)
+				$this->PrintLn(json_encode($Status));
+
+				else
+				Console\Elements\ListNamed::New(
+					Client: $this,
+					Items: $Status,
+					Print: 2
+				);
+			}
 
 			$C->Disconnect();
 			return;
