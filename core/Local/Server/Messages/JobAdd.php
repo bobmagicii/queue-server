@@ -42,9 +42,10 @@ implements Server\Messages\ServerProcessInterface {
 		////////
 
 		$Loop->Term->PrintLn(sprintf(
-			'[%s] [Job Add] [%s]',
+			'[%s] [Job Add] [%s @ %s]',
 			$Loop->GetCurrentDateTimeStamp(),
-			$this->Job->UUID
+			$this->Job->UUID,
+			$this->Job->TimeStartAfter ?: 'now'
 		));
 
 		$Loop->Kick();

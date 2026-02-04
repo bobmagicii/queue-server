@@ -143,14 +143,41 @@ extends Console\Client {
 		$OG = (array)$_SERVER['argv'];
 		$Mark = array_search('cmd', $OG);
 		$Args = Common\Datastore::FromArray(array_slice($OG, $Mark + 1));
-		$Cmd = $Args->Join(' ');
+		$Cmd = '';
+		$When = 0;
+		$Found = TRUE;
 
 		////////
 
+		while($Found) {
+			// if the argument after `cmd` seems special then we will
+			// consume it and keep checking for more special data.
+
+
+			// `cmd @integer` to schedule the job for the future.
+
+			if(str_starts_with($Args[0], '@')) {
+				$When = (int)str_replace('@', '', $Args[0]);
+				$Args->HeadPop();
+				$Found = TRUE;
+				continue;
+			}
+
+			////////
+
+			$Found = false;
+			continue;
+		}
+
+		////////
+
+		$Cmd = $Args->Join(' ');
+
 		$Message = new Server\Messages\JobAdd([
 			'Job' => Queue\Job::FromArray([
-				'JType' => 'shellcmd',
-				'JData' => json_encode([ 'Cmd' => $Cmd ])
+				'TimeStartAfter' => $When,
+				'JType'          => 'shellcmd',
+				'JData'          => json_encode([ 'Cmd' => $Cmd ])
 			])
 		]);
 
