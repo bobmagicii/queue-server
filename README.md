@@ -38,6 +38,10 @@ Add a new shell command to the queue. Everything after `cmd` is the command that
 
 * `$ php queue.phar cmd sleep 10`
 
+Add a shell command to run only after 2026-02-04 23:08:34 UTC, ignoring that by the time you read this that may already be past. If so this command will just immediately run.
+
+* `$ php queue.phar cmd @1770246514 sleep 10`
+
 ## Queue Status
 
 Prints a report about how many running jobs and how many are left.
