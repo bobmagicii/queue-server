@@ -41,11 +41,13 @@ implements Server\Messages\ServerProcessInterface {
 
 		////////
 
+		$When = Common\Date::FromTime($this->Job->TimeStartAfter ?: time());
+
 		$Loop->Term->PrintLn(sprintf(
 			'[%s] [Job Add] [%s @ %s]',
 			$Loop->GetCurrentDateTimeStamp(),
 			$this->Job->UUID,
-			$this->Job->TimeStartAfter ?: 'now'
+			$When->Get(Common\Values::DateFormatYMDT24VO)
 		));
 
 		$Loop->Kick();
