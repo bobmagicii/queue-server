@@ -73,6 +73,13 @@ extends Common\Prototype {
 	////////////////////////////////////////////////////////////////
 
 	public function
+	GetAddress():
+	string {
+
+		return $this->Address;
+	}
+
+	public function
 	SetAddress(string $Address):
 	static {
 

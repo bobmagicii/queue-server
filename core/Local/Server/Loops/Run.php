@@ -121,6 +121,15 @@ extends Server\Loop {
 			Print: 2
 		);
 
+		Console\Elements\ListNamed::New(
+			Client: $this->Term,
+			Items: [
+				'CX' => $this->Comms->GetAddress(),
+				'DB' => $this->Stack->GetDatabaseName()
+			],
+			Print: 2
+		);
+
 		($this->API)
 		->futureTick($this->Next(...));
 

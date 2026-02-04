@@ -73,8 +73,8 @@ extends Console\Client {
 	HandleRun():
 	int {
 
-		$OptStackDB = $this->GetOption('--db') ?: $this->StackDB;
-		$OptSocketAddr = $this->GetOption('--socket') ?: $this->SocketAddr;
+		$OptStackDB = $this->GetOption('db') ?: $this->StackDB;
+		$OptSocketAddr = $this->GetOption('socket') ?: $this->SocketAddr;
 		$OptFresh = (bool)$this->GetOption('fresh');
 
 		////////
