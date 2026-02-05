@@ -38,7 +38,7 @@ extends Common\Prototype {
 	Next():
 	Job {
 
-		$Now = Common\Date::Unixtime()-10;
+		$Now = Common\Date::Unixtime();
 		$Next = NULL;
 
 		// find if there is a job ready to be done.

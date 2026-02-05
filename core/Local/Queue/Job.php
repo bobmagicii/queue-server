@@ -267,7 +267,7 @@ extends Database\Prototype {
 		}
 
 		if($Input['Future'] !== NULL) {
-			$SQL->Where('TimeStarted=0 AND TimeStartAfter > :Future');
+			$SQL->Where('TimeStarted=0 AND TimeStartAfter >= :Future');
 			$SQL->Sort('TimeStartAfter, TimeCreated', $SQL::SortAsc);
 			$SQL->Limit(1);
 		}
