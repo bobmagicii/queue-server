@@ -42,6 +42,10 @@ Add a shell command to run only after 2026-02-04 23:08:34 UTC, ignoring that by 
 
 * `$ php queue.phar cmd @1770246514 sleep 10`
 
+And to a different queue.
+
+* `$ php queue.phar cmd +127.0.0.1:42100 @1770246514 sleep 10`
+
 ## Queue Status
 
 Prints a report about how many running jobs and how many are left.

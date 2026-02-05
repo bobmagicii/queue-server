@@ -68,6 +68,7 @@ extends Console\Client {
 	#[Console\Meta\Toggle('--fresh', 'Start a fresh empty DB.')]
 	#[Console\Meta\Value('--socket', 'Socket server addr:port.')]
 	#[Console\Meta\Value('--db', 'Path to SQLite database.')]
+	#[Console\Meta\Value('--jobs', 'Max concurrent jobs on this stack.')]
 	#[Common\Meta\Date('2025-09-21')]
 	public function
 	HandleRun():
@@ -75,6 +76,7 @@ extends Console\Client {
 
 		$OptStackDB = $this->GetOption('db') ?: $this->StackDB;
 		$OptSocketAddr = $this->GetOption('socket') ?: $this->SocketAddr;
+		$OptMaxJobs = $this->GetOption('jobs') ?: 2;
 		$OptFresh = (bool)$this->GetOption('fresh');
 
 		////////
@@ -85,6 +87,8 @@ extends Console\Client {
 			StackFresh: $OptFresh,
 			SocketAddr: $OptSocketAddr
 		);
+
+		$Loop->SetMaxJobs($OptMaxJobs);
 
 		$Loop->Run();
 
@@ -158,6 +162,15 @@ extends Console\Client {
 
 			if(str_starts_with($Args[0], '@')) {
 				$When = (int)str_replace('@', '', $Args[0]);
+				$Args->HeadPop();
+				$Found = TRUE;
+				continue;
+			}
+
+			// `cmd +host:port` to send to a specific queue.
+
+			if(str_starts_with($Args[0], '+')) {
+				$this->SocketAddr = str_replace('+', '', $Args[0]);
 				$Args->HeadPop();
 				$Found = TRUE;
 				continue;
